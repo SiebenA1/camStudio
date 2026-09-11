@@ -1,12 +1,14 @@
-"""空镜参考图路由：上传、场景分析、拍摄指导、图生预演。"""
+"""模特照片预演路由：上传、照片分析、拍摄建议、预演草图生成。"""
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, File, UploadFile
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
 from app.api.projects import _get_project
 from app.core.errors import AppError, ok
+from app.core.pose_styles import get_style, list_styles
 from app.core.storage import delete_local_file, save_bytes
 from app.database import get_db
 from app.models.reference import ReferenceShot
@@ -15,13 +17,19 @@ from app.services.previz_service import create_i2i_generation
 from app.services.reference_service import (
     analyze_reference_shot,
     build_framework_prompt,
-    generate_guidance,
+    generate_recommendation,
     get_pose_variations,
 )
 
 router = APIRouter(tags=["reference-shots"])
 
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/bmp"}
+
+
+class GenerateBody(BaseModel):
+    style_id: str | None = None
+    count: int = 3
+    render_level: str = "detailed"
 
 
 def _shot_dict(s: ReferenceShot) -> dict:
@@ -83,38 +91,69 @@ async def analyze(shot_id: str, db: Session = Depends(get_db), user: User = Depe
     return ok(data)
 
 
-@router.post("/reference-shots/{shot_id}/guidance")
-async def guidance(shot_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+@router.post("/reference-shots/{shot_id}/recommend")
+async def recommend(shot_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """基于照片分析 + 设备参数，推导拍摄建议与推荐相机参数（无需 Brief）。"""
     shot = _get_shot(db, user, shot_id)
-    from app.models.project import Brief
-    brief = db.query(Brief).filter(Brief.project_id == shot.project_id).first()
-    data = await generate_guidance(db, user.tenant_id, shot, brief.raw_text if brief else "")
+    data = await generate_recommendation(db, user.tenant_id, shot)
     return ok(data)
 
 
+@router.get("/reference-shots/styles")
+def get_pose_styles():
+    """返回预定义的姿势/动作风格库（供界面点选，无需输入）。"""
+    return ok(list_styles())
+
+
 @router.post("/reference-shots/{shot_id}/generate")
-def generate(shot_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    """以空镜图为参考，一次生成 3 张不同姿势的「拍摄框架示意图」（图生图）。"""
+def generate(shot_id: str, body: GenerateBody | None = None,
+             db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """以模特照片为参考生成「拍摄预演草图」（图生图）。
+
+    body.style_id 可选：指定预定义姿势风格时用其内置姿势，否则 AI 自动推导。
+    body.count 可选：生成张数（1~6，默认 3）。
+    body.render_level 可选：渲染程度 outline(轮廓)/simple(简笔)/detailed(精细)。
+    """
     shot = _get_shot(db, user, shot_id)
     from app.models.project import Project
     project = db.get(Project, shot.project_id)
     if not project:
         raise AppError(404, "not_found", "项目不存在")
 
-    poses = get_pose_variations(shot)
+    style = get_style(body.style_id if body else None)
+    if style:
+        poses = style["poses"]
+        style_hint = style["hint"]
+        style_label = style["label"]
+    else:
+        poses = get_pose_variations(shot)
+        style_hint = ""
+        style_label = None
+
+    count = max(1, min(6, (body.count if body else 3)))
+    render_level = (body.render_level if body and body.render_level else "detailed")
+
     asset_ids: list[str] = []
     prompts: list[str] = []
-    for pose in poses:
-        prompt = build_framework_prompt(shot, pose)
+    for i in range(count):
+        pose = poses[i % len(poses)]
+        if i >= len(poses):
+            pose = f"{pose}（变换角度）"
+        prompt = build_framework_prompt(shot, pose, style_hint=style_hint, render_level=render_level)
         asset = create_i2i_generation(
             db, project=project, shot=shot, prompt=prompt, tenant_id=user.tenant_id
         )
         asset_ids.append(asset.id)
         prompts.append(prompt)
+
+    camera_params = (shot.guidance_json or {}).get("camera_params")
     return ok({
         "asset_ids": asset_ids,
         "poses": poses,
-        "message": f"已提交 {len(asset_ids)} 张框架示意图生成任务，稍后刷新预演资产查看",
+        "style": style_label,
+        "render_level": render_level,
+        "camera_params": camera_params,
+        "message": f"已提交 {len(asset_ids)} 张预演草图生成任务，稍后刷新预演资产查看",
     })
 
 

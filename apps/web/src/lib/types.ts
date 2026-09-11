@@ -39,15 +39,6 @@ export interface Brief {
   status: string;
 }
 
-export interface Variable {
-  id: string;
-  type: string;
-  options: string[];
-  selected: string[];
-  weight: number;
-  sort: number;
-}
-
 export interface PrevizAsset {
   id: string;
   project_id: string;
@@ -145,47 +136,77 @@ export interface ReferenceShot {
   project_id: string;
   file_url: string;
   filename: string | null;
-  analysis_json: SceneAnalysis | null;
+  analysis_json: PhotoAnalysis | null;
   guidance_json: Guidance | null;
   status: string;
   created_at: string;
 }
 
-export interface SceneAnalysis {
-  scene_type?: string;
+// 模特照片分析结果
+export interface PhotoAnalysis {
+  scene?: { type?: string; background?: string };
   lighting?: { direction?: string; temperature?: string; intensity?: string; note?: string };
-  camera?: { angle?: string; height?: string; lens_suggestion?: string };
-  space?: { subject_zone?: string; free_area?: string };
-  composition?: { vanishing_point?: string; rule?: string; note?: string };
-  color?: { palette?: string[]; mood?: string };
+  model?: { gender?: string; age?: string; style?: string; pose?: string; expression?: string };
+  outfit?: { clothing?: string; accessories?: string[]; colors?: string[] };
   props?: string[];
-  challenge?: string;
+  composition?: { rule?: string; angle?: string; note?: string };
+  color?: { palette?: string[]; mood?: string };
+  improvement?: string[];
+  [key: string]: unknown;
+}
+
+// 推荐相机拍摄参数
+export interface CameraParams {
+  aperture?: string;
+  shutter_speed?: string;
+  iso?: string;
+  focal_length?: string;
+  white_balance?: string;
+  drive_mode?: string;
+  note?: string;
   [key: string]: unknown;
 }
 
 export interface Guidance {
-  camera_plan?: { subject_position?: string; camera_angle?: string; shooting_position?: string };
-  shot_list?: { shot?: string; camera?: string; subject?: string; lighting?: string; note?: string }[];
-  elements?: { character?: string; outfit?: string; pose?: string; expression?: string; composition?: string };
-  lighting_setup?: string;
-  props_needed?: string[];
+  camera_params?: CameraParams;
+  elements?: { pose?: string; expression?: string; composition?: string };
+  pose_variations?: string[];
   risk_tips?: string[];
   [key: string]: unknown;
 }
 
-export const VARIABLE_LABELS: Record<string, string> = {
-  character: "人物",
-  outfit: "穿搭 / 服装",
-  scene: "场景",
-  pose: "姿势",
-  expression: "表情",
-  composition: "构图",
-};
+// 拍摄设备配置
+export interface EquipmentSpecs {
+  camera?: { model?: string; sensor?: string; resolution?: string; iso_range?: string; shutter_range?: string; sync_speed?: string };
+  lens?: { model?: string; focal_range?: string; max_aperture?: string; stabilization?: string };
+  note?: string;
+  [key: string]: unknown;
+}
 
-// 用户指定的创作输入（场景由空镜图本身决定，不再作为输入）
-export const INPUT_VARIABLE_TYPES = ["character", "outfit"];
-// 由工具推导的专业参数（不由用户指定）
-export const DERIVED_VARIABLE_TYPES = ["pose", "expression", "composition", "position", "angle"];
+export interface EquipmentProfile {
+  camera_model: string | null;
+  lens_model: string | null;
+  specs: EquipmentSpecs | null;
+  updated_at: string | null;
+}
+
+// 预定义姿势/动作风格
+export interface PoseStyle {
+  id: string;
+  label: string;
+  hint: string;
+}
+
+// 相机/镜头型号目录（按品牌分组）
+export interface CatalogGroup {
+  brand: string;
+  models: string[];
+}
+
+export interface EquipmentCatalog {
+  cameras: CatalogGroup[];
+  lenses: CatalogGroup[];
+}
 
 export const TASK_TYPE_LABELS: Record<string, string> = {
   chat: "文本",

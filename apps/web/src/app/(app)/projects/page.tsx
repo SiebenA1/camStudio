@@ -18,7 +18,7 @@ import { formatDateTime } from "@/lib/utils";
 
 const STATUS_META: Record<string, { label: string; variant: "secondary" | "default" | "warning" | "success" | "outline" }> = {
   draft: { label: "草稿", variant: "secondary" },
-  briefing: { label: "Brief 阶段", variant: "secondary" },
+  briefing: { label: "需求阶段", variant: "secondary" },
   previz: { label: "预演中", variant: "default" },
   reviewing: { label: "评审中", variant: "warning" },
   locked: { label: "已锁定", variant: "success" },
@@ -61,7 +61,7 @@ export default function ProjectsPage() {
   });
 
   function onDelete(p: Project) {
-    if (window.confirm(`确定删除项目「${p.name}」吗？\n（项目及其空镜图、预演资产、评审将不再显示）`)) {
+    if (window.confirm(`确定删除项目「${p.name}」吗？\n（项目及其模特照片、预演素材、评审将不再显示）`)) {
       deleteMutation.mutate(p.id);
     }
   }

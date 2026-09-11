@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FolderKanban, LogOut, SlidersHorizontal, Sparkles } from "lucide-react";
+import { Camera, FolderKanban, LogOut, SlidersHorizontal, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/store/auth";
 
 const NAV = [
   { href: "/projects", label: "项目中心", icon: FolderKanban },
+  { href: "/equipment", label: "设备配置", icon: Camera },
   { href: "/models", label: "模型配置", icon: SlidersHorizontal },
 ];
 

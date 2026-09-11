@@ -10,6 +10,7 @@ from app.models.project import (
 )
 from app.models.previz import PrevizAsset, GenerationTask
 from app.models.reference import ReferenceShot
+from app.models.equipment import EquipmentProfile
 from app.models.review import Review, ReviewComment, ReviewVote, Approval
 from app.models.model_config import ModelConfig, AuditLog
 
@@ -26,6 +27,7 @@ __all__ = [
     "PrevizAsset",
     "GenerationTask",
     "ReferenceShot",
+    "EquipmentProfile",
     "Review",
     "ReviewComment",
     "ReviewVote",

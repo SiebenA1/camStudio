@@ -119,7 +119,7 @@ export function AssetGallery({ projectId }: { projectId: string }) {
 
       {!assets?.length ? (
         <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-          还没有预演资产，先导入 Brief 或上传空镜图生成
+          还没有预演资产，上传模特照片后点击「生成草图 ×3」
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
