@@ -1,0 +1,19 @@
+[Unit]
+Description=RealFrame Studio API (FastAPI)
+After=network.target
+
+[Service]
+Type=simple
+User=realframe
+Group=realframe
+WorkingDirectory=/opt/realframe/apps/api
+EnvironmentFile=/opt/realframe/apps/api/.env
+# 仅监听本机，由 Nginx 对外反代
+ExecStart=/opt/realframe/apps/api/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8787 --workers 1
+Restart=always
+RestartSec=3
+StandardOutput=append:/var/log/realframe/api.log
+StandardError=append:/var/log/realframe/api.log
+
+[Install]
+WantedBy=multi-user.target

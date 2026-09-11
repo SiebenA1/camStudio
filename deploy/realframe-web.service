@@ -1,0 +1,20 @@
+[Unit]
+Description=RealFrame Studio Web (Next.js)
+After=network.target
+
+[Service]
+Type=simple
+User=realframe
+Group=realframe
+WorkingDirectory=/opt/realframe/apps/web
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=HOSTNAME=127.0.0.1
+ExecStart=/opt/realframe/apps/web/node_modules/.bin/next start -p 3000 -H 127.0.0.1
+Restart=always
+RestartSec=3
+StandardOutput=append:/var/log/realframe/web.log
+StandardError=append:/var/log/realframe/web.log
+
+[Install]
+WantedBy=multi-user.target

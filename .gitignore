@@ -1,0 +1,57 @@
+# ============ 依赖 ============
+node_modules/
+.pnpm-store/
+.pnpm-cache/
+.pnpm/
+.npm-cache/
+.cache/
+
+# ============ 构建产物 ============
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+# ============ Python ============
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ============ 运行时数据（SQLite 库 / 上传的空镜图与预演图）============
+data/
+uploads/
+*.sqlite
+*.sqlite3
+*.db
+
+# ============ 环境变量与密钥（保留示例文件）============
+.env
+.env.*
+!.env.example
+!.env.local.example
+!.env.production.example
+*.pem
+*.key
+secrets/
+
+# ============ 日志与临时文件 ============
+*.log
+logs/
+.tmp/
+*.tar.gz
+
+# ============ IDE / 系统 ============
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# ============ 其它 ============
+coverage/
+.nyc_output/
